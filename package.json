@@ -1,0 +1,27 @@
+{
+  "name": "learning-javascript",
+  "version": "1.0.0",
+  "description": "A comprehensive collection of JavaScript practice files covering fundamental to advanced concepts",
+  "main": "file1.js",
+  "scripts": {
+    "test": "node --check *.js",
+    "lint": "eslint *.js",
+    "validate": "npm run test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Umang0210/Learning-Javascript.git"
+  },
+  "keywords": [
+    "javascript",
+    "learning",
+    "tutorial",
+    "examples",
+    "es6"
+  ],
+  "author": "Umang",
+  "license": "MIT",
+  "devDependencies": {
+    "eslint": "^8.57.0"
+  }
+}
