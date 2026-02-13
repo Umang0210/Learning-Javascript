@@ -6,56 +6,33 @@ on:
   pull_request:
     branches: [ main, master ]
 
+concurrency:
+  group: js-validation-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate:
     runs-on: ubuntu-latest
-    
+
     strategy:
       matrix:
         node-version: [18.x, 20.x]
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    
-    - name: Install dependencies
-      run: npm ci || npm install
-      continue-on-error: true
-    
-    - name: Check JavaScript syntax
-      run: |
-        echo "🔍 Validating JavaScript syntax for all files..."
-        for file in *.js; do
-          if [ -f "$file" ] && [ "$file" != "*.js" ]; then
-            echo "Checking $file..."
-            node --check "$file" || exit 1
-          fi
-        done
-        echo "✅ All JavaScript files are syntactically correct!"
-    
-    - name: Run ESLint (if configured)
-      run: |
-        if [ -f "package.json" ] && npm list eslint &>/dev/null; then
-          echo "🔍 Running ESLint..."
-          npx eslint "*.js" || exit 1
-        else
-          echo "⏭️  ESLint not configured, skipping..."
-        fi
-      continue-on-error: false
-    
-    - name: Test file execution
-      run: |
-        echo "🚀 Testing file execution..."
-        for file in file1.js file3.js file5.js file7.js file10.js file12.js; do
-          if [ -f "$file" ]; then
-            echo "Running $file..."
-            timeout 5s node "$file" || echo "⚠️  $file had runtime issues"
-          fi
-        done
-        echo "✅ Execution tests completed!"
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run syntax validation
+        run: npm run test
+
+      - name: Run ESLint
+        run: npm run lint
