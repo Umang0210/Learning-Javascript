@@ -27,4 +27,3 @@ function add(x,y){
 }
 let result = add(4,5)
 console.log(result)
-
