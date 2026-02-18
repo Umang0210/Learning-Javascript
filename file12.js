@@ -12,4 +12,3 @@ const student = {
 //spread operator
 const obj = {...student,city:"NYC"}
 console.log(obj)
-
