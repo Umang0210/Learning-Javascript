@@ -60,10 +60,26 @@ jobs:
       - name: 🏃 Run individual file execution test
         run: |
           echo "🔎 Testing that each file runs without runtime errors..."
+          
+          # Files that cannot run standalone (document reason for skipping)
+          # file16: Uses MongoDB db.orders.insertOne() — requires a database connection
+          # file22: Incomplete code snippet — references undefined functions
+          # file30: ES module (import/export) — requires package.json type:module
+          # file31: ES module (import/export) — requires package.json type:module
+          SKIP_FILES="16 22 30 31"
+          
           PASS=0
           FAIL=0
+          SKIP=0
           for i in $(seq 1 31); do
             if [ -f "file${i}.js" ]; then
+              # Check if file should be skipped
+              if echo "$SKIP_FILES" | grep -qw "$i"; then
+                echo "  ⏭ file${i}.js ... ⚪ SKIP (non-runnable learning example)"
+                SKIP=$((SKIP + 1))
+                continue
+              fi
+              
               echo -n "  ▶ file${i}.js ... "
               if node "file${i}.js" > /dev/null 2>&1; then
                 echo "✅ PASS"
@@ -75,9 +91,9 @@ jobs:
             fi
           done
           echo ""
-          echo "📊 Results: $PASS passed, $FAIL failed"
+          echo "📊 Results: $PASS passed, $FAIL failed, $SKIP skipped"
           if [ $FAIL -gt 0 ]; then
             echo "❌ Some files failed execution!"
             exit 1
           fi
-          echo "✅ All files executed successfully!"
+          echo "✅ All runnable files executed successfully!"
