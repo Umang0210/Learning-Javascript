@@ -8,22 +8,76 @@ on:
 
 jobs:
   validate:
+    name: 🔍 Syntax & Lint Check
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: 📥 Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: ⚙️ Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
 
-      - name: Install dependencies
+      - name: 📦 Install dependencies
         run: npm install
 
-      - name: Run syntax validation
-        run: npm run test
+      - name: ✅ Validate JavaScript syntax (file1 - file31)
+        run: |
+          echo "🔎 Running syntax check on file1.js through file31.js..."
+          FILES=""
+          for i in $(seq 1 31); do
+            if [ -f "file${i}.js" ]; then
+              FILES="$FILES file${i}.js"
+            fi
+          done
+          if [ -n "$FILES" ]; then
+            node --check $FILES
+            echo "✅ All files passed syntax validation!"
+          else
+            echo "⚠️ No matching files found."
+            exit 1
+          fi
 
-      - name: Run ESLint
-        run: npm run lint
+      - name: 🧹 Run ESLint on target files (file1 - file31)
+        run: |
+          echo "🔎 Running ESLint on file1.js through file31.js..."
+          FILES=""
+          for i in $(seq 1 31); do
+            if [ -f "file${i}.js" ]; then
+              FILES="$FILES file${i}.js"
+            fi
+          done
+          if [ -n "$FILES" ]; then
+            npx eslint $FILES
+            echo "✅ All files passed ESLint checks!"
+          else
+            echo "⚠️ No matching files found."
+            exit 1
+          fi
+
+      - name: 🏃 Run individual file execution test
+        run: |
+          echo "🔎 Testing that each file runs without runtime errors..."
+          PASS=0
+          FAIL=0
+          for i in $(seq 1 31); do
+            if [ -f "file${i}.js" ]; then
+              echo -n "  ▶ file${i}.js ... "
+              if node "file${i}.js" > /dev/null 2>&1; then
+                echo "✅ PASS"
+                PASS=$((PASS + 1))
+              else
+                echo "❌ FAIL"
+                FAIL=$((FAIL + 1))
+              fi
+            fi
+          done
+          echo ""
+          echo "📊 Results: $PASS passed, $FAIL failed"
+          if [ $FAIL -gt 0 ]; then
+            echo "❌ Some files failed execution!"
+            exit 1
+          fi
+          echo "✅ All files executed successfully!"
