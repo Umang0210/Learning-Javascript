@@ -8,8 +8,10 @@ on:
 
 jobs:
   validate:
-    name: 🔍 Syntax & Lint Check
+    name: 🔍 Syntax, Lint & Runtime Check
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: 📥 Checkout repository
@@ -19,81 +21,74 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 18
+          cache: npm
 
       - name: 📦 Install dependencies
-        run: npm install
+        run: npm ci
 
-      - name: ✅ Validate JavaScript syntax (file1 - file31)
+      - name: ✅ Validate JavaScript syntax (all root .js files)
         run: |
-          echo "🔎 Running syntax check on file1.js through file31.js..."
-          FILES=""
-          for i in $(seq 1 31); do
-            if [ -f "file${i}.js" ]; then
-              FILES="$FILES file${i}.js"
-            fi
-          done
-          if [ -n "$FILES" ]; then
-            node --check $FILES
-            echo "✅ All files passed syntax validation!"
-          else
-            echo "⚠️ No matching files found."
+          set -euo pipefail
+          files=$(find . -maxdepth 1 -type f -name '*.js' | sort)
+          if [ -z "$files" ]; then
+            echo "❌ No root-level .js files found"
             exit 1
           fi
 
-      - name: 🧹 Run ESLint on target files (file1 - file31)
-        run: |
-          echo "🔎 Running ESLint on file1.js through file31.js..."
-          FILES=""
-          for i in $(seq 1 31); do
-            if [ -f "file${i}.js" ]; then
-              FILES="$FILES file${i}.js"
-            fi
+          echo "🔎 Running syntax check on all root-level .js files..."
+          echo "$files" | while read -r file; do
+            [ -n "$file" ] && node --check "$file"
           done
-          if [ -n "$FILES" ]; then
-            npx eslint $FILES
-            echo "✅ All files passed ESLint checks!"
-          else
-            echo "⚠️ No matching files found."
+          echo "✅ All files passed syntax validation"
+
+      - name: 🧹 Run ESLint on all root .js files
+        run: |
+          set -euo pipefail
+          files=$(find . -maxdepth 1 -type f -name '*.js' | sort)
+          if [ -z "$files" ]; then
+            echo "❌ No root-level .js files found"
             exit 1
           fi
 
-      - name: 🏃 Run individual file execution test
+          echo "🔎 Running ESLint on all root-level .js files..."
+          npx eslint $files
+          echo "✅ All files passed ESLint checks"
+
+      - name: 🏃 Run individual file execution test (dynamic)
         run: |
-          echo "🔎 Testing that each file runs without runtime errors..."
-          
-          # Files that cannot run standalone (document reason for skipping)
-          # file16: Uses MongoDB db.orders.insertOne() — requires a database connection
-          # file22: Incomplete code snippet — references undefined functions
-          # file30: ES module (import/export) — requires package.json type:module
-          # file31: ES module (import/export) — requires package.json type:module
-          SKIP_FILES="16 22 30 31"
-          
+          set -euo pipefail
+          echo "🔎 Testing root-level .js files for runtime errors..."
+
+          # Files that are learning snippets or non-runnable in CI context.
+          SKIP_FILES="file16.js file22.js file30.js file31.js"
+
           PASS=0
           FAIL=0
           SKIP=0
-          for i in $(seq 1 31); do
-            if [ -f "file${i}.js" ]; then
-              # Check if file should be skipped
-              if echo "$SKIP_FILES" | grep -qw "$i"; then
-                echo "  ⏭ file${i}.js ... ⚪ SKIP (non-runnable learning example)"
-                SKIP=$((SKIP + 1))
-                continue
-              fi
-              
-              echo -n "  ▶ file${i}.js ... "
-              if node "file${i}.js" > /dev/null 2>&1; then
+
+          for file in $(find . -maxdepth 1 -type f -name '*.js' | sort); do
+            name=$(basename "$file")
+
+            if echo " $SKIP_FILES " | grep -q " $name "; then
+              echo "  ⏭ $name ... ⚪ SKIP (non-runnable learning example)"
+              SKIP=$((SKIP + 1))
+              continue
+            fi
+
+            echo -n "  ▶ $name ... "
+            if node "$file" > /dev/null 2>&1; then
                 echo "✅ PASS"
                 PASS=$((PASS + 1))
-              else
+            else
                 echo "❌ FAIL"
                 FAIL=$((FAIL + 1))
-              fi
             fi
           done
+
           echo ""
           echo "📊 Results: $PASS passed, $FAIL failed, $SKIP skipped"
           if [ $FAIL -gt 0 ]; then
             echo "❌ Some files failed execution!"
             exit 1
           fi
-          echo "✅ All runnable files executed successfully!"
+          echo "✅ All runnable files executed successfully"
