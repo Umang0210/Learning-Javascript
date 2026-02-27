@@ -1,5 +1,7 @@
 # 🚀 Learning JavaScript
 
+[![JavaScript CI](https://github.com/Umang0210/Learning-Javascript/actions/workflows/ci.yml/badge.svg)](https://github.com/Umang0210/Learning-Javascript/actions/workflows/ci.yml)
+
 A comprehensive collection of JavaScript practice files covering fundamental to advanced concepts. This repository serves as a hands-on learning resource for anyone starting their JavaScript journey.
 
 ## 📋 Table of Contents
@@ -9,12 +11,13 @@ A comprehensive collection of JavaScript practice files covering fundamental to 
 - [File Structure](#file-structure)
 - [Getting Started](#getting-started)
 - [How to Use](#how-to-use)
+- [Code Quality & CI](#code-quality--ci)
 - [Learning Path](#learning-path)
 - [Contributing](#contributing)
 
 ## 💡 About
 
-This repository contains **22+ practical JavaScript files** that demonstrate core programming concepts through real-world examples. Each file focuses on specific JavaScript features and best practices, making it easy to learn and reference.
+This repository contains **many practical JavaScript files** that demonstrate core programming concepts through real-world examples. Each file focuses on specific JavaScript features and best practices, making it easy to learn and reference.
 
 ## 🎯 Topics Covered
 
@@ -56,7 +59,7 @@ This repository contains **22+ practical JavaScript files** that demonstrate cor
 
 ### Prerequisites
 
-- **Node.js** (v12 or higher) - [Download here](https://nodejs.org/)
+- **Node.js** (v18 or higher recommended) - [Download here](https://nodejs.org/)
 - A code editor like **VS Code**, **Sublime Text**, or **Atom**
 
 ### Installation
@@ -92,6 +95,32 @@ node file20.js
 2. **Modify and experiment** - Change values and see what happens
 3. **Run frequently** - Execute files after making changes
 4. **Build progressively** - Start from `file1.js` and work your way up
+
+## ✅ Code Quality & CI
+
+This folder includes npm scripts and a GitHub Actions pipeline for automated checks.
+
+### Local checks
+
+```bash
+# Install dependencies
+npm install
+
+# Syntax validation (cross-platform; checks all .js and ,js files)
+npm run validate
+
+# ESLint checks
+npm run lint
+```
+
+### CI pipeline
+
+- Workflow file: `.github/workflows/ci.yml`
+- Runs on pushes and pull requests to `main`/`master` (and supports manual `workflow_dispatch`)
+- Performs:
+   - Dependency install (`npm ci`)
+   - Syntax check for JavaScript files
+   - ESLint linting
 
 ## 🛤️ Learning Path
 
